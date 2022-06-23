@@ -97,12 +97,61 @@ void ci(struct point p[MAX_N],int n,struct list* tour, int m, struct list* unvis
     erase(rr);
     //printNumbers(tour);
     //printNumbers(unvisited);
-    c++;
     //if(c==50) break;
   }
   //    printf("r,i,j,d[r] = %d %d %d %lf\n", r,i,j,d[r]);
   // printf("tour   :"); show_array(tour,sbtlen);
   // printf("visited:"); show_array(visited,n);
+}
+
+void ni(struct point p[MAX_N],int n,struct list* tour, int m, struct list* unvisited) {
+  int a,b,c,r,d=0;
+  struct cell* i;
+  struct cell* j;
+  struct cell* rr;
+  struct cell* aa;
+  struct cell* nearest; /* 未訪問点 r を現在の部分巡回路内の枝(i,i+1)に挿入する
+                  ときに最も距離の増加が小さい i を nearest[r]に保存*/
+  double min_dist;
+  aa=tour->head->next;
+  // a= 0 に最も近い点を探す
+  while(unvisited->head->next != unvisited->tail) {
+    min_dist=INF;
+    a=aa->data;
+    if(aa->prev==tour->head) {
+      b=tour->tail->prev->data;
+    } else {
+      b=aa->prev->data;
+    }
+    
+    if(aa->next==tour->tail) {
+      c=tour->head->next->data;
+    } else {
+      c=aa->next->data;
+    }
+    
+    for(i=unvisited->head->next;i->next!=NULL;i=i->next) {
+      r=i->data;
+      if (dist(p[a],p[r])<min_dist) {
+        rr=i;
+        min_dist=dist(p[a],p[r]);
+      }
+    }
+    if (dist(p[a],p[r])+dist(p[b],p[r])-dist(p[a],p[b])<dist(p[a],p[r])+dist(p[c],p[r])-dist(p[a],p[c])) {
+      insertBefore(aa,rr->data);
+      aa=aa->prev;
+      if(aa->prev==tour->head) aa=tour->tail->prev;
+    } else {
+      insertAfter(aa,rr->data);
+      aa=aa->next;
+      if(aa->next==tour->tail) aa=tour->head->next;
+    }
+    erase(rr);
+    //printNumbers(tour);
+    //printNumbers(unvisited);
+    d++;
+    //if(d==1) break;
+  }
 }
 
 void write_tour_data(char *filename, int n, int tour[MAX_N]){
@@ -142,7 +191,6 @@ int main(int argc, char *argv[]) {
   for(i=0;i<m;i++) {
     insertBefore(tour2.tail,prec[i]);
   }  
-  printNumbers(&tour2);
 
   for(int i=0;i<n;i++){
     int con=1;
@@ -151,7 +199,6 @@ int main(int argc, char *argv[]) {
     }
     if(con) insertBefore(unvisited.tail,i);
   }
-  printNumbers(&unvisited);
 
   if(argc != 2) {
     fprintf(stderr,"Usage: %s <tsp_filename>\n",argv[0]);
@@ -165,16 +212,14 @@ int main(int argc, char *argv[]) {
 
   // 最近近傍法による巡回路構築
   //nn(p,n,tour,m,prec);
-  ci(p,n,&tour2,m,&unvisited);
-  printNumbers(&tour2);
+  //ci(p,n,&tour2,m,&unvisited);
+  ni(p,n,&tour2,m,&unvisited);
   j=0;
   for(struct cell* i=tour2.head->next;i!=NULL;i=i->next) {
         tour[j] = i->data;
         j++;
     }
   //printNumbers(&tour2);
-  int size = sizeof(tour) / sizeof(int);
-  printf("%d\n", size);
 
   // ファイルに出力
   write_tour_data("tour1.dat",n,tour);
