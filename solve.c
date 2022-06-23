@@ -65,16 +65,13 @@ void read_tsp_data(char *filename, struct point p[MAX_N],int *np, int prec[MAX_N
 }
 
 void ci(struct point p[MAX_N],int n,struct list* tour, int m, struct list* unvisited) {
-  int a,b,c=0,r;
-  double d[MAX_N]; // 未訪問点 r から現在の部分巡回路までの最短距離を d[r] に保存
+  int a,b,r;
   struct cell* i;
   struct cell* j;
   struct cell* rr;
-  struct cell* nearest; /* 未訪問点 r を現在の部分巡回路内の枝(i,i+1)に挿入する
-                  ときに最も距離の増加が小さい i を nearest[r]に保存*/
-  double dist1,dist2, min_dist;
-  int min_i,min_j,min_r;
-  int sbtlen=0;
+  struct cell* nearest;
+  double min_dist;
+  
 
   // a= 0 に最も近い点を探す
   while(unvisited->head->next != unvisited->tail) {
@@ -95,13 +92,8 @@ void ci(struct point p[MAX_N],int n,struct list* tour, int m, struct list* unvis
     }
     insertAfter(nearest,rr->data);
     erase(rr);
-    //printNumbers(tour);
-    //printNumbers(unvisited);
-    //if(c==50) break;
   }
-  //    printf("r,i,j,d[r] = %d %d %d %lf\n", r,i,j,d[r]);
-  // printf("tour   :"); show_array(tour,sbtlen);
-  // printf("visited:"); show_array(visited,n);
+
 }
 
 void ni(struct point p[MAX_N],int n,struct list* tour, int m, struct list* unvisited) {
@@ -110,9 +102,9 @@ void ni(struct point p[MAX_N],int n,struct list* tour, int m, struct list* unvis
   struct cell* j;
   struct cell* rr;
   struct cell* aa;
-  struct cell* nearest; /* 未訪問点 r を現在の部分巡回路内の枝(i,i+1)に挿入する
-                  ときに最も距離の増加が小さい i を nearest[r]に保存*/
+  struct cell* nearest; 
   double min_dist;
+
   aa=tour->head->next;
   // a= 0 に最も近い点を探す
   while(unvisited->head->next != unvisited->tail) {
@@ -147,10 +139,6 @@ void ni(struct point p[MAX_N],int n,struct list* tour, int m, struct list* unvis
       if(aa->next==tour->tail) aa=tour->head->next;
     }
     erase(rr);
-    //printNumbers(tour);
-    //printNumbers(unvisited);
-    d++;
-    //if(d==1) break;
   }
 }
 
@@ -212,8 +200,10 @@ int main(int argc, char *argv[]) {
 
   // 最近近傍法による巡回路構築
   //nn(p,n,tour,m,prec);
-  //ci(p,n,&tour2,m,&unvisited);
-  ni(p,n,&tour2,m,&unvisited);
+  //Ceapest Insertionによる巡回路構築
+  ci(p,n,&tour2,m,&unvisited);
+  //Nearest Insertionによる巡回路構築
+  //ni(p,n,&tour2,m,&unvisited);
   j=0;
   for(struct cell* i=tour2.head->next;i!=NULL;i=i->next) {
         tour[j] = i->data;
