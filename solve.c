@@ -64,7 +64,55 @@ void read_tsp_data(char *filename, struct point p[MAX_N],int *np, int prec[MAX_N
 }
 
 void nn(struct point p[MAX_N],int n,int tour[MAX_N],int m, int prec[MAX_N]){
+  int i,j,r,nearest=-1;
+  int a;  
+  int visited[MAX_N]; // 都市iが訪問済みならば1そうでなければ0
+  double min;
+  int l, k=2;
+  int er=0;
+  for(r=0;r<n;r++) visited[r]=0; // 最初は全都市は未訪問
+  tour[0]=prec[0];         // 最初に訪問する都市は 0 
+  visited[tour[0]]=1;      // 都市0は訪問済み
 
+  for(i=0;i<n-1;i++) {
+    a = tour[i];
+    //最後に訪問した都市 a == tour[i]から最短距離にある未訪問都市nearestを
+    //見つける
+    min = INF;  
+    for(r=0;r<n;r++) { 
+      er = 0;   
+      for(l = k; l< m; l++) {
+          if(prec[l] == r) er=1;
+        }
+      if(er == 1) continue;
+      //if(prec[k-1] == r) k++;
+      if(!visited[r] && dist(p[a],p[r])<min){
+	      nearest=r; //都市tour[i]から暫定的に最短距離にある未訪問都市をnearestとする
+	      min = dist(p[a],p[r]); // その暫定最短距離をminとする
+      }
+      
+       
+    }
+    if(prec[k-1] == nearest) k++;
+    tour[i+1]=nearest; // i+1 番目に訪問する都市を nearest にして, 
+    visited[nearest]=1;// nearest を訪問済みとする. 
+    //    printf("tour   :"); show_array(tour,n);
+    //    printf("visited:"); show_array(visited,n);
+  }
+  
+}
+void insert(int tour[MAX_N], int* len, int k, int value) {
+  int i;
+  
+  if(k<0 || k > *len) {
+    printf("Error in insert: out of range\n");
+  }
+  
+  for(i=*len;i>k;i--) {
+    tour[i]=tour[i-1];
+  }
+  tour[k]=value;
+  (*len)++;
 }
 
 void write_tour_data(char *filename, int n, int tour[MAX_N]){
