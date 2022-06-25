@@ -304,18 +304,18 @@ int main(int argc, char *argv[]) {
   //順序制約の確認
   //for(i=0;i<m;i++) printf("%d\n",prec[i]);
 
-  // 最近近傍法による巡回路構築
-  //nn(p,n,tour,m,prec);
-  //Ceapest Insertionによる巡回路構築
-  //ci(p,n,&tour2,m,&unvisited);
-  //Nearest Insertionによる巡回路構築
-  ni(p,n,&tour2,m,&unvisited);
+  ci(p,n,&tour2,m,&unvisited);  //Ceapest Insertionによる巡回路構築
+  //ni(p,n,&tour2,m,&unvisited);  //Nearest Insertionによる巡回路構築
+
+
   j=0;
   for(struct cell* i=tour2.head->next;i!=NULL;i=i->next) {
         tour[j] = i->data;
         j++;
     }
   //printNumbers(&tour2);
+
+  //nn(p,n,tour,m,prec);          // 最近近傍法による巡回路構築
   printf("%5.1lf\n",tour_length(p,n,tour)); 
 
   TwoOpt(p,n,tour,m,prec);
