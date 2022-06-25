@@ -64,6 +64,45 @@ void read_tsp_data(char *filename, struct point p[MAX_N],int *np, int prec[MAX_N
   fclose(fp);
 }
 
+void nn(struct point p[MAX_N],int n,int tour[MAX_N],int m, int prec[MAX_N]){
+  int i,j,r,nearest=-1;
+  int a;  
+  int visited[MAX_N]; // 都市iが訪問済みならば1そうでなければ0
+  double min;
+  int l, k=2;
+  int er=0;
+  for(r=0;r<n;r++) visited[r]=0; // 最初は全都市は未訪問
+  tour[0]=prec[0];         // 最初に訪問する都市は 0 
+  visited[tour[0]]=1;      // 都市0は訪問済み
+
+  for(i=0;i<n-1;i++) {
+    a = tour[i];
+    //最後に訪問した都市 a == tour[i]から最短距離にある未訪問都市nearestを
+    //見つける
+    min = INF;  
+    for(r=0;r<n;r++) { 
+      er = 0;   
+      for(l = k; l< m; l++) {
+          if(prec[l] == r) er=1;
+        }
+      if(er == 1) continue;
+      //if(prec[k-1] == r) k++;
+      if(!visited[r] && dist(p[a],p[r])<min){
+	      nearest=r; //都市tour[i]から暫定的に最短距離にある未訪問都市をnearestとする
+	      min = dist(p[a],p[r]); // その暫定最短距離をminとする
+      }
+      
+       
+    }
+    if(prec[k-1] == nearest) k++;
+    tour[i+1]=nearest; // i+1 番目に訪問する都市を nearest にして, 
+    visited[nearest]=1;// nearest を訪問済みとする. 
+    //    printf("tour   :"); show_array(tour,n);
+    //    printf("visited:"); show_array(visited,n);
+  }
+  
+}
+
 void ci(struct point p[MAX_N],int n,struct list* tour, int m, struct list* unvisited) {
   int a,b,r;
   struct cell* i;
@@ -142,6 +181,71 @@ void ni(struct point p[MAX_N],int n,struct list* tour, int m, struct list* unvis
   }
 }
 
+void TwoOpt(struct point p[MAX_N], int n, int tour[MAX_N], int m, int prec[MAX_N]){
+  int a,b,c,d;
+  int i,j,k,l,g,h;
+  
+  int s_tour,n_tour,n_prec;
+  for(i=0;i<n;i++) {
+    if(prec[0] == tour[i]) {
+      s_tour = i;
+      n_prec = i+1;
+      break;
+    }
+  }
+
+  double max_dif;
+  int re = 1, con = 1;
+  while(con) {
+    con = 0;
+    for(i=1;i<=2;i++) {
+      if(tour[s_tour+i]==prec[n_prec]) {
+        s_tour = (s_tour+i)%n;
+        n_prec = (n_prec + 1)%m;
+        con = 1;
+      }
+    }
+    //printf("%d \n", prec[n_prec]);
+    if(0 == n_prec) break;
+    if(con) continue;
+    re=1;
+      while(re) {
+      max_dif = -1;
+      re = 0;
+
+      for(i=s_tour;tour[(i+2)%n] != prec[n_prec];i++) {
+          j=i+1;
+          n_tour = (i+3)%n;
+          for(k=i+2;tour[k] != prec[n_prec];k++){
+              l = (k+1)%n;
+              a = tour[i]; b = tour[j];
+              c = tour[k]; d = tour[l];
+              if(dist(p[a],p[b])+ dist(p[c],p[d]) > dist(p[a],p[c])+ dist(p[b],p[d])) {               
+                  if(max_dif < (dist(p[a],p[b])+ dist(p[c],p[d])) - (dist(p[a],p[c])+ dist(p[b],p[d]))) {   
+                      max_dif = (dist(p[a],p[b])+ dist(p[c],p[d])) - (dist(p[a],p[c])+ dist(p[b],p[d]));
+                      g = j;
+                      h = k;    
+                  }
+                  re = 1;
+              }
+          
+          }
+      }
+      if(re) {
+          while(g<h) {
+              SWAP(tour[g],tour[h]); 
+              g++;
+              h--; 
+          }
+      }
+    }
+
+    n_prec = (n_prec+1)%m;
+    if(0!=n_prec) con=1;
+    s_tour = n_tour;
+  }
+}
+
 void write_tour_data(char *filename, int n, int tour[MAX_N]){
   FILE *fp; 
   int i;
@@ -180,6 +284,8 @@ int main(int argc, char *argv[]) {
     insertBefore(tour2.tail,prec[i]);
   }  
 
+  printNumbers(&tour2);
+
   for(int i=0;i<n;i++){
     int con=1;
     for(j=0;j<m;j++) {
@@ -201,15 +307,18 @@ int main(int argc, char *argv[]) {
   // 最近近傍法による巡回路構築
   //nn(p,n,tour,m,prec);
   //Ceapest Insertionによる巡回路構築
-  ci(p,n,&tour2,m,&unvisited);
+  //ci(p,n,&tour2,m,&unvisited);
   //Nearest Insertionによる巡回路構築
-  //ni(p,n,&tour2,m,&unvisited);
+  ni(p,n,&tour2,m,&unvisited);
   j=0;
   for(struct cell* i=tour2.head->next;i!=NULL;i=i->next) {
         tour[j] = i->data;
         j++;
     }
   //printNumbers(&tour2);
+  printf("%5.1lf\n",tour_length(p,n,tour)); 
+
+  TwoOpt(p,n,tour,m,prec);
 
   // ファイルに出力
   write_tour_data("tour1.dat",n,tour);
